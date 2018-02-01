@@ -1,6 +1,17 @@
 ---
 version: 2
 jobs:
+  build:
+    docker:
+      - image: timberio/docker-builder:1.0.0
+    working_directory: /opt/packer-image
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker Image
+          command: |
+            docker build .
   release:
     docker:
       - image: timberio/docker-builder:1.0.0
@@ -20,9 +31,15 @@ workflows:
   version: 2
   build:
     jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
       - release:
           filters:
             tags:
               only: /v.*/
             branches:
               ignore: /.*/
+          requires:
+            - build
